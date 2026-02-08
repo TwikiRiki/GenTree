@@ -15,6 +15,23 @@ View your app in AI Studio: https://ai.studio/apps/drive/1-TSkbbWMibO74uR43EObAM
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set the `VITE_GEMINI_API_KEY` in `.env.local` to your Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
 3. Run the app:
    `npm run dev`
+
+## Features
+
+- **Multi-profile tracking**: Monitor health vitals for multiple family members.
+- **Visual Trends**: Interactive charts for Blood Pressure, Heart Rate, and SpO2.
+- **AI Health Insights**: Powered by Gemini 2.0 Flash to analyze health trends and provide helpful summaries.
+- **Multi-language support**: Available in English and Italian.
+- **Data Portability**: Export your data to CSV format.
+- **Secure Sharing**: Share profiles with other users via email.
+
+## Technical Details
+
+- **Framework**: React 19 + Vite
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **AI SDK**: @google/genai (Gemini 2.0)
+- **Charts**: Recharts

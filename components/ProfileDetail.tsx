@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import VitalEntryModal from './VitalEntryModal';
 import SharingModal from './SharingModal';
+import { getHealthInsights } from '../services/gemini';
 
 interface ProfileDetailProps {
   profileId: string;
@@ -22,6 +23,8 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ profileId, onBack, curren
   const [isAddingRecord, setIsAddingRecord] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [chartType, setChartType] = useState<'line' | 'bar'>('line');
+  const [insights, setInsights] = useState<string>('');
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
   useEffect(() => {
     const p = storage.getProfileById(profileId);
@@ -77,6 +80,20 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ profileId, onBack, curren
     link.click();
   };
 
+  const generateInsights = async () => {
+    if (!profile || records.length === 0) return;
+    setIsGeneratingInsights(true);
+    try {
+      const insight = await getHealthInsights(profile, records);
+      setInsights(insight);
+    } catch (err) {
+      console.error(err);
+      setInsights(t.failedInsights);
+    } finally {
+      setIsGeneratingInsights(false);
+    }
+  };
+
   const chartData = useMemo(() => {
     return records.map(r => ({
       time: new Date(r.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
@@ -126,7 +143,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ profileId, onBack, curren
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Visual Selector */}
         <div className="col-span-full flex justify-end">
           <div className="flex bg-white p-1 rounded-xl shadow-sm border border-slate-200">
@@ -135,8 +152,10 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ profileId, onBack, curren
           </div>
         </div>
 
-        {/* BP Trend */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        {/* Main Content Area */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* BP Trend */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
             <span className="w-1.5 h-6 bg-red-500 rounded-full"></span>
             {t.bpTrend}
@@ -168,73 +187,118 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ profileId, onBack, curren
               </ResponsiveContainer>
             ) : <div className="h-full flex items-center justify-center text-slate-400 italic">{t.noEntries}</div>}
           </div>
-        </div>
+          </div>
 
-        {/* Heart Rate Section */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-rose-400 rounded-full"></span>
-            {t.heartRate}
-          </h3>
-          <div className="h-[350px]">
-            {records.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                {chartType === 'line' ? (
-                  <AreaChart data={chartData}>
-                    <defs><linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fb7185" stopOpacity={0.1}/><stop offset="95%" stopColor="#fb7185" stopOpacity={0}/></linearGradient></defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="time" tick={{fontSize: 10}} height={50} />
-                    <YAxis domain={['auto', 'auto']} />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="heartRate" stroke="#fb7185" strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" name={t.heartRate} />
-                  </AreaChart>
-                ) : (
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="time" tick={{fontSize: 10}} height={50} />
-                    <YAxis domain={['auto', 'auto']} />
-                    <Tooltip />
-                    <Bar dataKey="heartRate" fill="#fb7185" radius={[4, 4, 0, 0]} name={t.heartRate} />
-                  </BarChart>
-                )}
-              </ResponsiveContainer>
-            ) : <div className="h-full flex items-center justify-center text-slate-400 italic">{t.noEntries}</div>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Heart Rate Section */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <span className="w-1.5 h-6 bg-rose-400 rounded-full"></span>
+                {t.heartRate}
+              </h3>
+              <div className="h-[300px]">
+                {records.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    {chartType === 'line' ? (
+                      <AreaChart data={chartData}>
+                        <defs><linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fb7185" stopOpacity={0.1}/><stop offset="95%" stopColor="#fb7185" stopOpacity={0}/></linearGradient></defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="time" hide />
+                        <YAxis domain={['auto', 'auto']} />
+                        <Tooltip />
+                        <Area type="monotone" dataKey="heartRate" stroke="#fb7185" strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" name={t.heartRate} />
+                      </AreaChart>
+                    ) : (
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="time" hide />
+                        <YAxis domain={['auto', 'auto']} />
+                        <Tooltip />
+                        <Bar dataKey="heartRate" fill="#fb7185" radius={[4, 4, 0, 0]} name={t.heartRate} />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center text-slate-400 italic">{t.noEntries}</div>}
+              </div>
+            </div>
+
+            {/* SpO2 Section */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <span className="w-1.5 h-6 bg-cyan-400 rounded-full"></span>
+                {t.spo2}
+              </h3>
+              <div className="h-[300px]">
+                {records.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    {chartType === 'line' ? (
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="time" hide />
+                        <YAxis domain={[80, 100]} />
+                        <Tooltip />
+                        <Line type="stepAfter" dataKey="spo2" stroke="#22d3ee" strokeWidth={4} dot={{ r: 4 }} name={t.spo2} />
+                      </LineChart>
+                    ) : (
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="time" hide />
+                        <YAxis domain={[80, 100]} />
+                        <Tooltip />
+                        <Bar dataKey="spo2" fill="#22d3ee" radius={[4, 4, 0, 0]} name={t.spo2} />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center text-slate-400 italic">{t.noEntries}</div>}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* SpO2 Section */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-cyan-400 rounded-full"></span>
-            {t.spo2}
-          </h3>
-          <div className="h-[350px]">
-            {records.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                {chartType === 'line' ? (
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="time" tick={{fontSize: 10}} height={50} />
-                    <YAxis domain={[80, 100]} />
-                    <Tooltip />
-                    <Line type="stepAfter" dataKey="spo2" stroke="#22d3ee" strokeWidth={4} dot={{ r: 4 }} name={t.spo2} />
-                  </LineChart>
-                ) : (
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="time" tick={{fontSize: 10}} height={50} />
-                    <YAxis domain={[80, 100]} />
-                    <Tooltip />
-                    <Bar dataKey="spo2" fill="#22d3ee" radius={[4, 4, 0, 0]} name={t.spo2} />
-                  </BarChart>
-                )}
-              </ResponsiveContainer>
-            ) : <div className="h-full flex items-center justify-center text-slate-400 italic">{t.noEntries}</div>}
-          </div>
-        </div>
+        {/* Sidebar Area */}
+        <div className="space-y-8">
+          {/* Health Insights */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-slate-800">{t.healthInsights}</h3>
+              <button
+                onClick={generateInsights}
+                disabled={isGeneratingInsights || records.length === 0}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:text-slate-300 transition-colors"
+              >
+                {isGeneratingInsights ? t.generatingInsights : t.refreshAI}
+              </button>
+            </div>
 
-        {/* History List */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            {insights ? (
+              <div className="text-sm text-slate-600 leading-relaxed bg-blue-50/50 p-4 rounded-xl border border-blue-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                {insights.split('\n').map((line, i) => (
+                  <p key={i} className="mb-2 last:mb-0">{line}</p>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="mb-3 flex justify-center">
+                  <div className="p-3 bg-blue-50 rounded-full text-blue-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mb-4">{t.aiInsightsDesc}</p>
+                <button
+                  onClick={generateInsights}
+                  disabled={records.length === 0}
+                  className="w-full py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-100 transition-all disabled:opacity-50"
+                >
+                  {t.analyzeTrends}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* History List */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="font-bold text-slate-800 mb-4">{t.vitalsHistory}</h3>
           <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
             {records.slice().reverse().map(record => (
@@ -265,6 +329,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ profileId, onBack, curren
               </div>
             ))}
             {records.length === 0 && <p className="text-center text-slate-400 py-4 text-sm">{t.noEntries}</p>}
+          </div>
           </div>
         </div>
       </div>

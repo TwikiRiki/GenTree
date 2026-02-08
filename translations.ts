@@ -48,7 +48,13 @@ export const translations = {
     signIn: "Sign In",
     signUp: "Sign Up",
     alreadyAccount: "Already have an account? Sign in",
-    noAccount: "Don't have an account? Sign up"
+    noAccount: "Don't have an account? Sign up",
+    healthInsights: "Health Insights",
+    generatingInsights: "Analyzing...",
+    refreshAI: "Refresh AI",
+    analyzeTrends: "Analyze Trends",
+    aiInsightsDesc: "Get AI-powered health analysis based on the vitals history.",
+    failedInsights: "Failed to generate insights. Please try again."
   },
   it: {
     appName: "VitalTrack Pro",
@@ -98,6 +104,12 @@ export const translations = {
     signIn: "Accedi",
     signUp: "Registrati",
     alreadyAccount: "Hai già un account? Accedi",
-    noAccount: "Non hai un account? Registrati"
+    noAccount: "Non hai un account? Registrati",
+    healthInsights: "Analisi Salute",
+    generatingInsights: "Analisi in corso...",
+    refreshAI: "Aggiorna AI",
+    analyzeTrends: "Analizza Tendenze",
+    aiInsightsDesc: "Ottieni analisi della salute basate sull'intelligenza artificiale.",
+    failedInsights: "Generazione analisi fallita. Riprova."
   }
 };
