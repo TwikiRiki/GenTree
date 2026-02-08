@@ -4,11 +4,10 @@ import { HealthProfile, VitalRecord } from "../types";
 
 /**
  * Generates health insights based on patient profile and vital records using Gemini AI.
- * This fixes the "Expected 0 arguments, but got 2" error in components/PatientProfile.tsx.
  */
 export const getHealthInsights = async (profile: HealthProfile, records: VitalRecord[]) => {
   // Always use a named parameter for the apiKey as per the @google/genai coding guidelines.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   
   // Create a summary of the vital records for the AI to analyze.
   const recordSummary = records.map(r => 
@@ -37,9 +36,9 @@ export const getHealthInsights = async (profile: HealthProfile, records: VitalRe
   `;
 
   try {
-    // Using gemini-3-pro-preview for complex reasoning tasks like health data analysis.
+    // Using gemini-2.0-flash for complex reasoning tasks like health data analysis.
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-2.0-flash',
       contents: prompt,
     });
     
