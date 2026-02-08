@@ -1,0 +1,5 @@
+{
+  "name": "Genealogy Tree Manager",
+  "description": "An interactive family tree editor featuring a Family-node hub model for complex relationship management and generation-based visualization.",
+  "requestFramePermissions": []
+}
