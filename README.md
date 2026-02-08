@@ -19,6 +19,27 @@ View your app in AI Studio: https://ai.studio/apps/drive/1-TSkbbWMibO74uR43EObAM
 3. Run the app:
    `npm run dev`
 
+## Android App (Native)
+
+The Android version of VitalTrack Pro is built using Kotlin and Jetpack Compose.
+
+### Prerequisites
+- Android Studio Ladybug or newer
+- JDK 21
+- Android SDK 35
+
+### Setup
+1. Open the `android/` directory in Android Studio.
+2. In your `local.properties` file (or as an environment variable), set:
+   `GEMINI_API_KEY=your_api_key_here`
+3. Sync Gradle and run the `app` configuration.
+
+### Features (Android)
+- **Local Persistence**: Powered by Room Database for fast, offline access.
+- **AI Insights**: Native Gemini SDK integration.
+- **Material 3 UI**: Modern, responsive design matching the web app.
+- **Charts**: Custom data visualization for all health metrics.
+
 ## Features
 
 - **Multi-profile tracking**: Monitor health vitals for multiple family members.
