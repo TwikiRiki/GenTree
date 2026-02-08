@@ -1,0 +1,5 @@
+{
+  "name": "VitalTrack Pro",
+  "description": "A comprehensive vital signs monitor for families and health-conscious individuals. Track blood pressure, oxygen saturation, and heart rate for multiple family members with real-time graphs, AI health insights, and secure sharing.",
+  "requestFramePermissions": []
+}
